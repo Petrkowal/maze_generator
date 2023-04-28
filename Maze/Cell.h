@@ -5,69 +5,31 @@
 
 class Cell {
 public:
-    uint8_t byte;
-    Cell(){byte = 0x0;}
-    Cell(uint8_t byte) : byte(byte) {}
+    Cell();
+    Cell(uint8_t byte);
 
-    bool visited() {
-        return (byte & VISITED) != 0;
-    }
-    void set_visited() {
-        byte |= VISITED;
-    }
-    void set_unvisited(){
-        byte &= ~VISITED;
-    }
-    bool wall(int d){
-        switch (d) {
-            case N: // up
-                return (byte & WALL_N) != 0;
-            case E: // right
-                return (byte & WALL_E) != 0;
-            case S: // down
-                return (byte & WALL_S) != 0;
-            case W: // left
-                return (byte & WALL_W) != 0;
-            default:
-                return false;
-        }
-    }
-    void set_wall(int d){
-        switch (d) {
-            case N: // up
-                byte |= WALL_N;
-                return;
-            case E: // right
-                byte |= WALL_E;
-                return;
-            case S: // down
-                byte |= WALL_S;
-                return;
-            case W: // left
-                byte |= WALL_W;
-                return;
-            default:
-                return;
-        }
-    }
-    void remove_wall(int d) {
-        switch (d) {
-            case N: // up
-                byte &= ~WALL_N;
-                return;
-            case E: // right
-                byte &= ~WALL_E;
-                return;
-            case S: // down
-                byte &= ~WALL_S;
-                return;
-            case W: // left
-                byte &= ~WALL_W;
-                return;
-            default:
-                return;
-        }
-    }
+    bool is_visited() const;
+    void set_visited();
+    void set_unvisited();
 
+    bool has_wall(enum Direction dir) const;
+    void add_wall(enum Direction dir);
+    void remove_wall(enum Direction dir);
+
+    bool is_start() const;
+    void remove_start();
+    void set_start();
+
+    bool is_end() const;
+    void remove_end();
+    void set_end();
+private:
+    uint8_t _byte;
+
+    enum class State : uint8_t {
+        VISITED = 0b10000,
+        START   = 0b100000,
+        END     = 0b1000000
+    };
 };
 

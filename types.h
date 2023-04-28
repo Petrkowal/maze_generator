@@ -1,16 +1,19 @@
 #pragma once
 
-enum {
-    WALL_N = 0b1,
-    WALL_E = 0b10,
-    WALL_S = 0b100,
-    WALL_W = 0b1000,
-    VISITED = 0b10000,
-    START = 0b100000,
-    END = 0b1000000,
-    N = 0,
-    E = 1,
-    S = 2,
-    W = 3
+#include <cstdint>
+
+enum class Direction : uint8_t {
+    N = 0b1,
+    E = 0b10,
+    S = 0b100,
+    W = 0b1000
 };
 
+struct Size {
+    int x;
+    int y;
+};
+
+using Coords = Size;
+
+const Size DEFAULT_SIZE{10, 5};

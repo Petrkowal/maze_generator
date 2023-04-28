@@ -1,11 +1,15 @@
 #include <iostream>
 #include <random>
-#include "Maze/Maze.h"
+
+#include "MazeGenerator.h"
 
 using std::cout;
 using std::endl;
 
 int main() {
-    Maze m(10,5);
-    m.generate();
+   MazeGenerator mg = MazeGenerator();
+   Maze* maze = mg.generate_maze();
+   maze->print();
+//    Maze m(10,5);
+//    m.generate();
 }

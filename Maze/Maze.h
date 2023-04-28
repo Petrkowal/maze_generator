@@ -11,27 +11,21 @@
 #include <random>
 #include <windows.h>
 
-struct Size {
-    int x;
-    int y;
-};
-
-using Coords = Size;
-
 
 class Maze {
 public:
     Maze(const Size &size);
-    Maze(const int x, const int y);
-    void init();
-    void generate();
-    void print();
-private:
-    bool valid_coords(Coords coords) const;
+    void print() const;
+protected:
+    Size _size;
+    Coords _start_coords;
+    Coords _current_coords;
+    std::vector<std::vector<Cell>> _maze;
 
-    Size size;
-    Coords start;
-    std::stack<Coords> path;
-    std::vector<std::vector<Cell>> maze;
+    bool valid_coords(Coords c) const;
 };
 
+class MazeBuilder : public Maze {
+public:
+
+};
