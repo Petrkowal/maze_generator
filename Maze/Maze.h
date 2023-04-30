@@ -25,7 +25,6 @@ protected:
     bool valid_coords(Coords c) const;
 };
 
-// TODO: implement this
 class MazeBuilder : public Maze {
 public:
 
