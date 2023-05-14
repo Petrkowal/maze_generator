@@ -8,6 +8,6 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 
 file(GLOB SOURCES "*.cpp" "*/*.cpp")
 
-add_executable(maze_generator ${SOURCES} Output/MazeVideo.cpp Output/MazeVideo.h Output/Observer.cpp Output/Observer.h)
+add_executable(maze_generator ${SOURCES} Output/MazeVideo.cpp Output/MazeVideo.h Output/Observer.cpp Output/Observer.h Output/MazeOutput.h)
 
 target_link_libraries(maze_generator ${OpenCV_LIBS})

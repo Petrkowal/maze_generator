@@ -13,7 +13,7 @@ using std::endl;
 
 int main() {
     MazeGenerator mg = MazeGenerator(50, 50).set_seed(2);
-    std::shared_ptr<MazeVideo> mv = std::make_shared<MazeVideo>();
+    std::shared_ptr<MazeVideo> mv = std::make_shared<MazeVideo>("test.avi");
     mg.addObserver(mv);
     mg.set_seed(1);
     std::unique_ptr<Maze> maze = mg.generate();

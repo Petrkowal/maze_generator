@@ -3,21 +3,20 @@
 #include "opencv2/opencv.hpp"
 #include "Observer.h"
 #include "MazeImage.h"
+#include "MazeOutput.h"
 
 
 #include <iostream>
-class MazeVideo : public Observer {
+class MazeVideo : public Observer, public MazeOutput {
 public:
-    MazeVideo(std::string fname);
+    MazeVideo(std::string &filename);
     void update(const MazeGrid& grid, Coords current_point) override;
-private:
 
-    void draw_frame(const MazeGrid& grid, Coords current_point);
-    Size _frame_size = {0, 0};
-    MazeGrid _last_grid = {};
-    int _fps = 30;
-    std::string _fname;
+    MazeVideo& set_fps(int fps);
+    void save_video();
+private:
+    int _fps;
+    Size _frame_size{};
     cv::VideoWriter _video;
     cv::Mat _frame;
-
 };
