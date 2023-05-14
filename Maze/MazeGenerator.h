@@ -50,6 +50,7 @@ private:
     bool validate_settings() const;
     void print(const Coords& current) const;
     std::vector<std::shared_ptr<Observer>> _observers;
+    void notify_observers() const;
 
     Coords get_neigh_coords(const Coords& coords, Direction direction) const;
 

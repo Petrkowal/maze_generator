@@ -228,3 +228,9 @@ MazeGenerator &MazeGenerator::addObserver(std::shared_ptr<Observer> observer) {
     _observers.push_back(observer);
     return *this;
 }
+
+void MazeGenerator::notify_observers() const {
+    for (auto &observer : _observers) {
+        observer->update(_maze_builder->get_grid());
+    }
+}
