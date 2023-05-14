@@ -6,6 +6,7 @@
 class MazeImage {
 public:
     MazeImage(const Maze& maze);
+    MazeImage(MazeGrid  grid);
     MazeImage& set_maze(const Maze& maze);
     MazeImage& set_cell_size(int size);
     MazeImage& set_wall_size(int size);
@@ -16,12 +17,13 @@ public:
 
     void generate();
     void save(const std::string &filename);
-private:
-    std::unique_ptr<Maze> _maze;
+protected:
     int _cell_size = 30;
     int _wall_size = 2;
     cv::Scalar _wall_color = cv::Scalar(255, 255, 255);
     cv::Scalar _background_color = cv::Scalar(0, 0, 0);
     cv::Mat _image;
+private:
+    MazeGrid _grid;
 };
 

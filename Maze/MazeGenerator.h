@@ -5,7 +5,8 @@
 
 #include "../types.h"
 #include "Maze.h"
-#include "../Output/MazeVideo.h"
+#include "../Output/Observer.h"
+//#include "../Output/MazeVideo.h"
 
 class MazeGeneratorException : public std::exception {
 public:
@@ -40,7 +41,7 @@ public:
     MazeGenerator& set_seed(int seed);
     MazeGenerator& reset_seed();
 
-    MazeGenerator& addObserver(std::shared_ptr<Observer> observer);
+    MazeGenerator& addObserver(const std::shared_ptr<Observer>& observer);
     std::unique_ptr<Maze> generate();
 private:
     std::unique_ptr<MazeGridBuilder> _maze_builder;
@@ -50,7 +51,7 @@ private:
     bool validate_settings() const;
     void print(const Coords& current) const;
     std::vector<std::shared_ptr<Observer>> _observers;
-    void notify_observers() const;
+    void notify_observers(Coords coords) const;
 
     Coords get_neigh_coords(const Coords& coords, Direction direction) const;
 

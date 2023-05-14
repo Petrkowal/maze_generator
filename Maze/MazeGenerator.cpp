@@ -153,6 +153,7 @@ bool MazeGenerator::generateDFS() {
         gen_path.pop();
 //        std::this_thread::sleep_for(std::chrono::milliseconds(200));
 //        this->print(current_point);
+        notify_observers(current_point);
 
         unvisited_neighbors = _maze_builder->get_unvisited_directions(current_point);
         if (unvisited_neighbors.empty())
@@ -224,13 +225,13 @@ void MazeGenerator::print(const Coords &current_coords) const {
     }
 }
 
-MazeGenerator &MazeGenerator::addObserver(std::shared_ptr<Observer> observer) {
+MazeGenerator &MazeGenerator::addObserver(const std::shared_ptr<Observer>& observer) {
     _observers.push_back(observer);
     return *this;
 }
 
-void MazeGenerator::notify_observers() const {
+void MazeGenerator::notify_observers(Coords coords) const {
     for (auto &observer : _observers) {
-        observer->update(_maze_builder->get_grid());
+        observer->update(_maze_builder->get_grid(), coords);
     }
 }

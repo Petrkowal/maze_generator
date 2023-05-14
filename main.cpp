@@ -3,6 +3,7 @@
 #include "Maze/Maze.h"
 #include "Maze/MazeGenerator.h"
 #include "Output/MazeImage.h"
+#include "Output/MazeVideo.h"
 #include "opencv2/opencv.hpp"
 
 

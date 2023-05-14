@@ -1,20 +1,23 @@
 #pragma once
 #include "../Maze/Maze.h"
-#include "../Maze/MazeGenerator.h"
 #include "opencv2/opencv.hpp"
+#include "Observer.h"
+#include "MazeImage.h"
 
-class Observer{
-public:
-    virtual void update(const MazeGrid& grid) = 0;
-};
+
 #include <iostream>
 class MazeVideo : public Observer {
 public:
-    MazeVideo();
-    void update(const MazeGrid& grid) override {
-        std::cout<< "update" << std::endl;
-    };
+    MazeVideo(std::string fname);
+    void update(const MazeGrid& grid, Coords current_point) override;
 private:
-    Coords _size = {0, 0};
+
+    void draw_frame(const MazeGrid& grid, Coords current_point);
+    Size _frame_size = {0, 0};
+    MazeGrid _last_grid = {};
+    int _fps = 30;
+    std::string _fname;
+    cv::VideoWriter _video;
+    cv::Mat _frame;
 
 };

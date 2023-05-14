@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
+#include <vector>
 
 enum class Direction : uint8_t {
     N = 0b1,
@@ -33,4 +35,6 @@ struct Size {
 
 
 const Size DEFAULT_SIZE{10, 5};
+struct Cell;
+using MazeGrid = std::vector<std::vector<std::shared_ptr<Cell>>>;
 
