@@ -6,29 +6,30 @@
 class Cell {
 public:
     Cell();
+    Cell(const Cell &orig);
     Cell(uint8_t byte);
 
     bool is_visited() const;
-    void set_visited();
-    void set_unvisited();
+    Cell& set_visited();
+    Cell& set_unvisited();
 
     bool has_wall(enum Direction dir) const;
-    void add_wall(enum Direction dir);
-    void remove_wall(enum Direction dir);
+    Cell& set_wall(enum Direction dir);
+    Cell& remove_wall(enum Direction dir);
 
     bool is_start() const;
-    void remove_start();
-    void set_start();
+    Cell& remove_start();
+    Cell& set_start();
 
     bool is_end() const;
-    void remove_end();
-    void set_end();
+    Cell& remove_end();
+    Cell& set_end();
 private:
     uint8_t _byte;
 
     enum class State : uint8_t {
-        VISITED = 0b10000,
-        START   = 0b100000,
+        VISITED   = 0b10000,
+        START    = 0b100000,
         END     = 0b1000000
     };
 };

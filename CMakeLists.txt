@@ -3,5 +3,7 @@ project(maze_generator)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(maze_generator main.cpp Maze/Maze.cpp Maze/Cell.cpp MazeGenerator.cpp)
+file(GLOB SOURCES "*.cpp" "*/*.cpp")
+
+add_executable(maze_generator ${SOURCES})
 

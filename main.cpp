@@ -1,15 +1,28 @@
 #include <iostream>
-#include <random>
-
-#include "MazeGenerator.h"
+#include <memory>
+#include "Maze/MazeGenerator.h"
 
 using std::cout;
 using std::endl;
 
 int main() {
-   MazeGenerator mg = MazeGenerator();
-   Maze* maze = mg.generate_maze();
-   maze->print();
-//    Maze m(10,5);
-//    m.generate();
+    MazeGenerator mg = MazeGenerator(10, 5).setSeed(2);
+    mg.setSeed(1);
+    std::unique_ptr<Maze> maze = mg.generate();
+    maze->print();
+    cout << "Algorithm: " << maze->get_algorithm() << endl;
+    cout << "Size: " << maze->get_size().width << ", " << maze->get_size().height << endl;
+
+
+    cout << "Time: " << maze->get_gen_time().count() << " milliseconds" << endl;
+    cout << "Seed: " << maze->get_seed() << endl;
+    cout << "Start: " << maze->get_start().x << ", " << maze->get_start().y << endl;
+    cout << "End: " << maze->get_end().x << ", " << maze->get_end().y << endl;
+//
+//    cv::Mat img(300, 400, CV_8UC3, cv::Scalar(0, 0, 0));
+//    cv::rectangle(img, cv::Point(100, 50), cv::Point(280, 200), cv::Scalar(0, 0, 255), 2);
+//    cv::imshow("Image", img);
+//    cv::waitKey(0);
+
+    return 0;
 }

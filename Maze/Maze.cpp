@@ -1,23 +1,51 @@
 #include "Maze.h"
 
-Maze::Maze(const Size &size) : _size(size) {
-    _maze.resize(_size.x, std::vector<Cell>(_size.y));
-    for (auto& col : _maze){
-        for (auto& cell : col){
-            cell = Cell{0b1111};
-        }
-    }
+#include <utility>
+
+Maze::Maze(const Size &size, const Coords &start_coords, const Coords& end_coords, int seed, std::string algorithm,
+           std::chrono::duration<double> time, MazeGrid maze) : _size(size),
+                                          _start(start_coords),
+                                          _end(end_coords),
+                                          _seed(0),
+                                          _algorithm(algorithm),
+                                          _gen_time(time),
+                                          _maze(std::move(maze)) {
+
 }
 
-bool Maze::valid_coords(Coords c) const {
-    return c.x >= 0 && c.x < _size.x && c.y >= 0 && c.y < _size.y;
+MazeGrid Maze::get_grid() const {
+    return {_maze};
+}
+
+Coords Maze::get_start() const {
+    return {_start};
+}
+
+Coords Maze::get_end() const {
+    return {_end};
+}
+
+Size Maze::get_size() const {
+    return {_size};
+}
+
+std::string Maze::get_algorithm() const {
+    return _algorithm;
+}
+
+int Maze::get_seed() const {
+    return _seed;
+}
+
+const std::chrono::duration<double, std::milli> Maze::get_gen_time() const {
+    return std::chrono::duration<double, std::milli>(_gen_time);
 }
 
 void Maze::print() const {
     int cols = _maze.size();
     int rows = _maze[0].size();
 
-    for(int i = 0;i < 30; i++){
+    for (int i = 0; i < 30; i++) {
         std::cout << std::endl;
     }
 
@@ -30,24 +58,18 @@ void Maze::print() const {
     for (int row = 0; row < rows; row++) {
         std::cout << "|";
         for (int col = 0; col < cols; col++) {
-            if (_maze[col][row].has_wall(Direction::E)) {
-                if (col == _start_coords.x && row == _start_coords.y) {
+            if (_maze[col][row]->has_wall(Direction::E)) {
+                if (_maze[col][row]->is_start()) {
                     std::cout << " S |";
-                }
-                else if(col == _current_coords.x && row == _current_coords.y){
-                    std::cout << " * |";
-                }
-                else {
+                } else if (_maze[col][row]->is_end()) {
+                    std::cout << " E |";
+                } else {
                     std::cout << "   |";
                 }
             } else {
-                if (col == _start_coords.x && row == _start_coords.y) {
+                if (_maze[col][row]->is_start()) {
                     std::cout << " S  ";
-                }
-                else if(col == _current_coords.x && row == _current_coords.y){
-                    std::cout << " *  ";
-                }
-                else {
+                } else {
                     std::cout << "    ";
                 }
             }
@@ -56,7 +78,7 @@ void Maze::print() const {
 
         std::cout << "+";
         for (int col = 0; col < cols; col++) {
-            if (_maze[col][row].has_wall(Direction::S)) {
+            if (_maze[col][row]->has_wall(Direction::S)) {
                 std::cout << "---+";
             } else {
                 std::cout << "   +";
@@ -66,73 +88,230 @@ void Maze::print() const {
     }
 }
 
-//void Maze::generate() {
-//    std::random_device rd;
-//    std::mt19937 gen(rd());
-//    std::uniform_int_distribution<> dis(1, 10);
-//    Coords new_point;
-//    Coords last_point;
-//    int dir;
-//    std::vector<int> unvisited_neighbors;
-//    while (path.size() > 0) {
-//        Sleep(500);
-//        this->print();
-//        unvisited_neighbors.clear();
-//        last_point = path.top();
-//        path.pop();
-//
-//        new_point = last_point;
-//        new_point.y--;
-//        if (valid_coords(new_point) && !maze[new_point.x][new_point.y].is_visited()) {
-//            unvisited_neighbors.push_back(0);
-//        }
-//        new_point = last_point;
-//        new_point.x++;
-//        if (valid_coords(new_point) && !maze[new_point.x][new_point.y].is_visited()) {
-//            unvisited_neighbors.push_back(1);
-//        }
-//        new_point = last_point;
-//        new_point.y++;
-//        if (valid_coords(new_point) && !maze[new_point.x][new_point.y].is_visited()) {
-//            unvisited_neighbors.push_back(2);
-//        }
-//        new_point = last_point;
-//        new_point.x--;
-//        if (valid_coords(new_point) && !maze[new_point.x][new_point.y].is_visited()) {
-//            unvisited_neighbors.push_back(3);
-//        }
-//        if (!unvisited_neighbors.empty()) {
-//            path.push(last_point);
-//            std::shuffle(unvisited_neighbors.begin(), unvisited_neighbors.end(), rd);
-//
-//            new_point = last_point;
-//            switch (unvisited_neighbors[0]) {
-//                case 0: // up
-//                    new_point.y--;
-//                    maze[last_point.x][last_point.y].remove_wall(Direction::N);
-//                    maze[new_point.x][new_point.y].remove_wall(Direction::S);
-//                    break;
-//                case 1: // right
-//                    new_point.x++;
-//                    maze[last_point.x][last_point.y].remove_wall(Direction::E);
-//                    maze[new_point.x][new_point.y].remove_wall(Direction::W);
-//                    break;
-//                case 2: // down
-//                    new_point.y++;
-//                    maze[last_point.x][last_point.y].remove_wall(Direction::S);
-//                    maze[new_point.x][new_point.y].remove_wall(Direction::N);
-//                    break;
-//                case 3: // left
-//                    new_point.x--;
-//                    maze[last_point.x][last_point.y].remove_wall(Direction::W);
-//                    maze[new_point.x][new_point.y].remove_wall(Direction::E);
-//                    break;
-//                default:
-//                    break;
-//            }
-//            maze[new_point.x][new_point.y].set_visited();
-//            path.push(new_point);
-//        }
-//    }
-//}
-//
+
+
+
+MazeGridBuilder::MazeGridBuilder(const Size &size) : _size(size) {
+
+
+}
+
+MazeGridBuilder::~MazeGridBuilder() {
+
+}
+
+MazeGridBuilder &MazeGridBuilder::create_empty_grid() {
+    _maze = MazeGrid(_size.width, std::vector<std::shared_ptr<Cell>>(_size.height));
+    for (auto &col: _maze) {
+        for (auto &cell: col) {
+            cell = std::make_shared<Cell>(0b1111);
+        }
+    }
+    return *this;
+}
+
+bool MazeGridBuilder::validate_coords(const Coords &c) const {
+    int cols = _maze.size();
+    if (cols == 0) {
+        return false;
+    }
+    int rows = _maze[0].size();
+    if (rows == 0) {
+        return false;
+    }
+    if (c.x < 0 || c.x >= cols) {
+        return false;
+    }
+    if (c.y < 0 || c.y >= rows) {
+        return false;
+    }
+    if (_maze[c.x].empty()) {
+        return false;
+    }
+    if (c.y >= _maze[c.x].size()) {
+        return false;
+    }
+    return true;
+}
+
+std::shared_ptr<Cell> MazeGridBuilder::get_cell(const Coords &coords) {
+    if (validate_coords(coords)) {
+        return _maze[coords.x][coords.y];
+    }
+    return nullptr;
+}
+
+std::shared_ptr<Cell> MazeGridBuilder::get_neighbor_cell(const Coords &coords, Direction direction) {
+    if (!validate_coords(coords)) {
+        return nullptr;
+    }
+    switch (direction) {
+        case Direction::N:
+            return get_cell({coords.x, coords.y - 1});
+        case Direction::E:
+            return get_cell({coords.x + 1, coords.y});
+        case Direction::S:
+            return get_cell({coords.x, coords.y + 1});
+        case Direction::W:
+            return get_cell({coords.x - 1, coords.y});
+    }
+    return nullptr;
+}
+
+std::vector<std::shared_ptr<Cell>> MazeGridBuilder::get_neighbors(const Coords &coords) {
+    if (!validate_coords(coords)) {
+        return {};
+    }
+    std::vector<std::shared_ptr<Cell>> neighbors;
+    Coords neigh_c = {coords.x, coords.y - 1};
+    if (validate_coords(neigh_c))
+        neighbors.push_back(_maze[neigh_c.x][neigh_c.y]);
+    neigh_c = {coords.x + 1, coords.y};
+    if (validate_coords(neigh_c))
+        neighbors.push_back(_maze[neigh_c.x][neigh_c.y]);
+    neigh_c = {coords.x, coords.y + 1};
+    if (validate_coords(neigh_c))
+        neighbors.push_back(_maze[neigh_c.x][neigh_c.y]);
+    neigh_c = {coords.x - 1, coords.y};
+    if (validate_coords(neigh_c))
+        neighbors.push_back(_maze[neigh_c.x][neigh_c.y]);
+    return neighbors;
+}
+
+std::vector<std::shared_ptr<Cell>> MazeGridBuilder::get_unvisited_neighbors(const Coords &coords) {
+    if (!validate_coords(coords)) {
+        return {};
+    }
+    std::vector<std::shared_ptr<Cell>> neighbors;
+    Coords neigh_c = {coords.x, coords.y - 1};
+    if (validate_coords(neigh_c) && !_maze[neigh_c.x][neigh_c.y]->is_visited())
+        neighbors.push_back(_maze[neigh_c.x][neigh_c.y]);
+    neigh_c = {coords.x + 1, coords.y};
+    if (validate_coords(neigh_c) && !_maze[neigh_c.x][neigh_c.y]->is_visited())
+        neighbors.push_back(_maze[neigh_c.x][neigh_c.y]);
+    neigh_c = {coords.x, coords.y + 1};
+    if (validate_coords(neigh_c) && !_maze[neigh_c.x][neigh_c.y]->is_visited())
+        neighbors.push_back(_maze[neigh_c.x][neigh_c.y]);
+    neigh_c = {coords.x - 1, coords.y};
+    if (validate_coords(neigh_c) && !_maze[neigh_c.x][neigh_c.y]->is_visited())
+        neighbors.push_back(_maze[neigh_c.x][neigh_c.y]);
+    return neighbors;
+}
+
+std::vector<std::shared_ptr<Cell>> MazeGridBuilder::get_visited_neighbors(const Coords &coords) {
+    if (!validate_coords(coords)) {
+        return {};
+    }
+    std::vector<std::shared_ptr<Cell>> neighbors;
+    Coords neigh_c = {coords.x, coords.y - 1};
+    if (validate_coords(neigh_c) && _maze[neigh_c.x][neigh_c.y]->is_visited())
+        neighbors.push_back(_maze[neigh_c.x][neigh_c.y]);
+    neigh_c = {coords.x + 1, coords.y};
+    if (validate_coords(neigh_c) && _maze[neigh_c.x][neigh_c.y]->is_visited())
+        neighbors.push_back(_maze[neigh_c.x][neigh_c.y]);
+    neigh_c = {coords.x, coords.y + 1};
+    if (validate_coords(neigh_c) && _maze[neigh_c.x][neigh_c.y]->is_visited())
+        neighbors.push_back(_maze[neigh_c.x][neigh_c.y]);
+    neigh_c = {coords.x - 1, coords.y};
+    if (validate_coords(neigh_c) && _maze[neigh_c.x][neigh_c.y]->is_visited())
+        neighbors.push_back(_maze[neigh_c.x][neigh_c.y]);
+    return neighbors;
+}
+
+std::vector<Direction> MazeGridBuilder::get_unvisited_directions(const Coords &coords) {
+    if (!validate_coords(coords)) {
+        return {};
+    }
+    std::vector<Direction> directions;
+    Coords neigh_c = {coords.x, coords.y - 1};
+    if (validate_coords(neigh_c) && !_maze[neigh_c.x][neigh_c.y]->is_visited())
+        directions.push_back(Direction::NORTH);
+    neigh_c = {coords.x + 1, coords.y};
+    if (validate_coords(neigh_c) && !_maze[neigh_c.x][neigh_c.y]->is_visited())
+        directions.push_back(Direction::EAST);
+    neigh_c = {coords.x, coords.y + 1};
+    if (validate_coords(neigh_c) && !_maze[neigh_c.x][neigh_c.y]->is_visited())
+        directions.push_back(Direction::SOUTH);
+    neigh_c = {coords.x - 1, coords.y};
+    if (validate_coords(neigh_c) && !_maze[neigh_c.x][neigh_c.y]->is_visited())
+        directions.push_back(Direction::WEST);
+    return directions;
+}
+
+bool MazeGridBuilder::remove_wall(const Coords &coords, Direction direction) {
+    if (!validate_coords(coords)) {
+        return false;
+    }
+    switch (direction) {
+        case Direction::NORTH:
+            if (!validate_coords({coords.x, coords.y - 1})) {
+                return false;
+            }
+            _maze[coords.x][coords.y]->remove_wall(Direction::NORTH);
+            _maze[coords.x][coords.y - 1]->remove_wall(Direction::SOUTH);
+            return true;
+        case Direction::EAST:
+            if (!validate_coords({coords.x + 1, coords.y})) {
+                return false;
+            }
+            _maze[coords.x][coords.y]->remove_wall(Direction::EAST);
+            _maze[coords.x + 1][coords.y]->remove_wall(Direction::WEST);
+            return true;
+        case Direction::SOUTH:
+            if (!validate_coords({coords.x, coords.y + 1})) {
+                return false;
+            }
+            _maze[coords.x][coords.y]->remove_wall(Direction::SOUTH);
+            _maze[coords.x][coords.y + 1]->remove_wall(Direction::NORTH);
+            return true;
+        case Direction::WEST:
+            if (!validate_coords({coords.x - 1, coords.y})) {
+                return false;
+            }
+            _maze[coords.x][coords.y]->remove_wall(Direction::WEST);
+            _maze[coords.x - 1][coords.y]->remove_wall(Direction::EAST);
+            return true;
+        default:
+            return false;
+    }
+}
+
+bool MazeGridBuilder::remove_wall(const Coords &coords, const Coords &neighbor) {
+    if (coords == neighbor) {
+        return false;
+    }
+    // check if coords and neighbor are adjacent
+    if (abs(coords.x - neighbor.x) > 1 && coords.y != neighbor.y ||
+        abs(coords.y - neighbor.y) > 1 && coords.x != neighbor.x
+            ) {
+        return false;
+    }
+
+    if (!validate_coords(coords) || !validate_coords(neighbor)) {
+        return false;
+    }
+
+    // remove the walls
+    if (coords.x < neighbor.x) {
+        _maze[coords.x][coords.y]->remove_wall(Direction::EAST);
+        _maze[neighbor.x][neighbor.y]->remove_wall(Direction::WEST);
+        return true;
+    } else if (coords.x > neighbor.x) {
+        _maze[coords.x][coords.y]->remove_wall(Direction::WEST);
+        _maze[neighbor.x][neighbor.y]->remove_wall(Direction::EAST);
+        return true;
+    } else if (coords.y < neighbor.y) {
+        _maze[coords.x][coords.y]->remove_wall(Direction::SOUTH);
+        _maze[neighbor.x][neighbor.y]->remove_wall(Direction::NORTH);
+        return true;
+    } else if (coords.y > neighbor.y) {
+        _maze[coords.x][coords.y]->remove_wall(Direction::NORTH);
+        _maze[neighbor.x][neighbor.y]->remove_wall(Direction::SOUTH);
+        return true;
+    }
+    return false;
+}
+
+MazeGrid MazeGridBuilder::get_grid() const {
+    return {_maze};
+}
