@@ -1,6 +1,8 @@
 #include <iostream>
 #include <memory>
+#include "Maze/Maze.h"
 #include "Maze/MazeGenerator.h"
+#include "Output/MazeImage.h"
 #include "opencv2/opencv.hpp"
 
 
@@ -8,8 +10,8 @@ using std::cout;
 using std::endl;
 
 int main() {
-    MazeGenerator mg = MazeGenerator(10, 5).setSeed(2);
-    mg.setSeed(1);
+    MazeGenerator mg = MazeGenerator(50, 50).set_seed(2);
+    mg.set_seed(1);
     std::unique_ptr<Maze> maze = mg.generate();
     maze->print();
     cout << "Algorithm: " << maze->get_algorithm() << endl;
@@ -21,19 +23,15 @@ int main() {
     cout << "Start: " << maze->get_start().x << ", " << maze->get_start().y << endl;
     cout << "End: " << maze->get_end().x << ", " << maze->get_end().y << endl;
 
-    // create opencv image
-    cv::Mat img(300, 400, CV_8UC3, cv::Scalar(0, 0, 0));
-    // draw rectangle
-    cv::rectangle(img, cv::Point(100, 50), cv::Point(280, 200), cv::Scalar(0, 0, 255), 2);
-    // show image
-    cv::imshow("Image", img);
-    // wait for key to close window
+    MazeImage maze_image = MazeImage(*maze);
+    maze_image.set_cell_size(15);
+    maze_image.set_wall_size(1);
+    maze_image.set_wall_color(cv::Scalar(255, 255, 255));
+    maze_image.set_background_color(cv::Scalar(0, 0, 0));
+    maze_image.generate();
+    auto maze_img = maze_image.get_image();
+    cv::imshow("Maze", maze_img);
     cv::waitKey(0);
-
-//    cv::Mat img(300, 400, CV_8UC3, cv::Scalar(0, 0, 0));
-//    cv::rectangle(img, cv::Point(100, 50), cv::Point(280, 200), cv::Scalar(0, 0, 255), 2);
-//    cv::imshow("Image", img);
-//    cv::waitKey(0);
 
     return 0;
 }

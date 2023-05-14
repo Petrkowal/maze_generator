@@ -5,6 +5,7 @@
 
 #include "../types.h"
 #include "Maze.h"
+#include "../Output/MazeVideo.h"
 
 class MazeGeneratorException : public std::exception {
 public:
@@ -24,20 +25,22 @@ public:
     MazeGenerator(int width, int height);
     MazeGenerator(MazeGenerator& other);
 
-    MazeGenerator& setSize(const Size& size);
-    MazeGenerator& setSize(int width, int height);
-    MazeGenerator& setWidth(int width);
-    MazeGenerator& setHeight(int height);
+    MazeGenerator& set_size(const Size& size);
+    MazeGenerator& set_size(int width, int height);
+    MazeGenerator& set_width(int width);
+    MazeGenerator& set_height(int height);
 
-    MazeGenerator& setStart(const Coords& start);
-    MazeGenerator& setStart(int x, int y);
+    MazeGenerator& set_start(const Coords& start);
+    MazeGenerator& set_start(int x, int y);
 
-    MazeGenerator& setEnd(const Coords& end);
-    MazeGenerator& setEnd(int x, int y);
+    MazeGenerator& set_end(const Coords& end);
+    MazeGenerator& set_end(int x, int y);
 
-    MazeGenerator& setAlgorithm(const std::string& algorithm);
-    MazeGenerator& setSeed(int seed);
-    MazeGenerator& resetSeed();
+    MazeGenerator& set_algorithm(const std::string& algorithm);
+    MazeGenerator& set_seed(int seed);
+    MazeGenerator& reset_seed();
+
+    MazeGenerator& addObserver(std::shared_ptr<Observer> observer);
     std::unique_ptr<Maze> generate();
 private:
     std::unique_ptr<MazeGridBuilder> _maze_builder;
@@ -46,12 +49,13 @@ private:
     bool valid_coords_settings(Coords c) const;
     bool validate_settings() const;
     void print(const Coords& current) const;
+    std::vector<std::shared_ptr<Observer>> _observers;
 
     Coords get_neigh_coords(const Coords& coords, Direction direction) const;
 
     Size _size = {10, 5};
     Coords _start = {0, 0};
-    Coords _end = {9, 4};
+    Coords _end = {_size.width - 1, _size.height - 1};
     std::string _algorithm = "dfs";
     int _seed = 0;
 

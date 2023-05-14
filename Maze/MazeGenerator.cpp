@@ -17,45 +17,45 @@ MazeGenerator::MazeGenerator(MazeGenerator &other) : _size(other._size), _start(
     _maze_builder = std::move(other._maze_builder);
 }
 
-MazeGenerator &MazeGenerator::setSize(const Size &size) {
+MazeGenerator &MazeGenerator::set_size(const Size &size) {
     _size = size;
     validate_settings();
     return *this;
 }
 
-MazeGenerator &MazeGenerator::setSize(int width, int height) {
-    return setSize({width, height});
+MazeGenerator &MazeGenerator::set_size(int width, int height) {
+    return set_size({width, height});
 }
 
-MazeGenerator &MazeGenerator::setWidth(int width) {
-    return setSize({width, _size.height});
+MazeGenerator &MazeGenerator::set_width(int width) {
+    return set_size({width, _size.height});
 }
 
-MazeGenerator &MazeGenerator::setHeight(int height) {
-    return setSize({_size.width, height});
+MazeGenerator &MazeGenerator::set_height(int height) {
+    return set_size({_size.width, height});
 }
 
-MazeGenerator &MazeGenerator::setStart(const Coords &start) {
+MazeGenerator &MazeGenerator::set_start(const Coords &start) {
     _start = start;
     validate_settings();
     return *this;
 }
 
-MazeGenerator &MazeGenerator::setStart(int x, int y) {
-    return setStart({x, y});
+MazeGenerator &MazeGenerator::set_start(int x, int y) {
+    return set_start({x, y});
 }
 
-MazeGenerator &MazeGenerator::setEnd(const Coords &end) {
+MazeGenerator &MazeGenerator::set_end(const Coords &end) {
     _end = end;
     validate_settings();
     return *this;
 }
 
-MazeGenerator &MazeGenerator::setEnd(const int x, const int y) {
-    return setEnd({x, y});
+MazeGenerator &MazeGenerator::set_end(const int x, const int y) {
+    return set_end({x, y});
 }
 
-MazeGenerator &MazeGenerator::setAlgorithm(const std::string &algorithm) {
+MazeGenerator &MazeGenerator::set_algorithm(const std::string &algorithm) {
     std::string algo = algorithm;
     std::transform(algo.begin(), algo.end(), algo.begin(), ::tolower);
     algo.erase(std::remove_if(algo.begin(), algo.end(), [](char c) { return !isprint(c); }), algo.end());
@@ -64,13 +64,13 @@ MazeGenerator &MazeGenerator::setAlgorithm(const std::string &algorithm) {
     return *this;
 }
 
-MazeGenerator &MazeGenerator::setSeed(const int seed) {
+MazeGenerator &MazeGenerator::set_seed(const int seed) {
     _seed = seed;
     validate_settings();
     return *this;
 }
 
-MazeGenerator &MazeGenerator::resetSeed() {
+MazeGenerator &MazeGenerator::reset_seed() {
     _seed = 0;
     validate_settings();
     return *this;
@@ -82,7 +82,7 @@ bool MazeGenerator::validate_settings() const {
     }
     if (!valid_coords_settings(_start)) {
         throw MazeGeneratorException(
-                "Start coordinates must be within the maze: (0, 0) - " + std::to_string(_size.width) + ", " +
+                "Start coordinates must be within the maze: (0, 0) - (" + std::to_string(_size.width) + ", " +
                 std::to_string(_size.height) + ")");
     }
     if (!valid_coords_settings(_end)) {
@@ -151,7 +151,7 @@ bool MazeGenerator::generateDFS() {
         unvisited_neighbors.clear();
         current_point = gen_path.top();
         gen_path.pop();
-//        Sleep(10);
+//        std::this_thread::sleep_for(std::chrono::milliseconds(200));
 //        this->print(current_point);
 
         unvisited_neighbors = _maze_builder->get_unvisited_directions(current_point);
@@ -222,4 +222,9 @@ void MazeGenerator::print(const Coords &current_coords) const {
         }
         std::cout << std::endl;
     }
+}
+
+MazeGenerator &MazeGenerator::addObserver(std::shared_ptr<Observer> observer) {
+    _observers.push_back(observer);
+    return *this;
 }
