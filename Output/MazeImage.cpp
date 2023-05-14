@@ -23,7 +23,12 @@ void MazeImage::save(const std::string &filename) {
     if (_image.empty()) {
         return;
     }
-    cv::imwrite(filename, _image);
+    // add .png
+    std::string file = filename;
+    if (file.size() < 4 || file.substr(file.size() - 4) != ".png") {
+        file += ".png";
+    }
+    cv::imwrite(file, _image);
 }
 
 cv::Mat MazeImage::get_image() const {

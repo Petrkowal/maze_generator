@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 
+
 enum class Direction : uint8_t {
     N = 0b1,
     E = 0b10,
@@ -12,7 +13,7 @@ enum class Direction : uint8_t {
     NORTH = N,
     EAST = E,
     SOUTH = S,
-    WEST = W
+    WEST = W,
 };
 
 struct Coords {
@@ -21,6 +22,9 @@ struct Coords {
 
     bool operator==(const Coords &other) const {
         return x == other.x && y == other.y;
+    }
+    bool operator!=(const Coords &other) const {
+        return !(*this == other);
     }
 };
 

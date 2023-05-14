@@ -10,32 +10,42 @@ public:
 
     virtual ~MazeOutput() = default;
 
-    MazeOutput &set_maze(const Maze &maze){
+    MazeOutput &set_maze(const Maze &maze) {
         _grid = maze.get_grid();
         return *this;
     }
 
-    MazeOutput &set_cell_size(int size){
+    MazeOutput &set_cell_size(int size) {
         _cell_size = size;
         return *this;
     }
 
-    MazeOutput &set_wall_size(int size){
+    MazeOutput &set_wall_size(int size) {
         _wall_size = size;
         return *this;
     }
 
-    MazeOutput &set_wall_color(const cv::Scalar &color){
+    MazeOutput &set_wall_color(const cv::Scalar &color) {
         _wall_color = color;
         return *this;
     }
 
-    MazeOutput &set_background_color(const cv::Scalar &color){
+    MazeOutput &set_background_color(const cv::Scalar &color) {
         _background_color = color;
         return *this;
     }
 
-    MazeOutput &set_filename(const std::string &filename){
+    MazeOutput &set_start_color(const cv::Scalar &color) {
+        _start_color = color;
+        return *this;
+    }
+
+    MazeOutput &set_end_color(const cv::Scalar &color) {
+        _end_color = color;
+        return *this;
+    }
+
+    MazeOutput &set_filename(const std::string &filename) {
         if (filename.empty()) {
             throw std::invalid_argument("Filename cannot be empty");
         }
@@ -49,16 +59,28 @@ protected:
     int _wall_size = 2;
     cv::Scalar _wall_color = cv::Scalar(255, 255, 255);
     cv::Scalar _background_color = cv::Scalar(0, 0, 0);
+    cv::Scalar _start_color = cv::Scalar(0, 255, 0);
+    cv::Scalar _end_color = cv::Scalar(0, 0, 255);
     MazeGrid _grid;
 
 
     cv::Mat generate_image(const MazeGrid &grid, int cell_size, int wall_size, const cv::Scalar &wall_color,
                            const cv::Scalar &background_color) const {
+        return generate_image_with_current(grid, cell_size, wall_size, wall_color, background_color, {-1, -1},
+                                           cv::Scalar(0, 0, 0));
+    }
+
+    cv::Mat
+    generate_image_with_current(const MazeGrid &grid, int cell_size, int wall_size, const cv::Scalar &wall_color,
+                                const cv::Scalar &background_color, const Coords &current_coords,
+                                const cv::Scalar &current_color) const {
         int width = grid.size();
         int height = grid[0].size();
         cv::Mat maze_img(height * (cell_size + wall_size) + wall_size,
                          width * (cell_size + wall_size) + wall_size,
                          CV_8UC3, background_color);
+
+
 
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
@@ -68,17 +90,17 @@ protected:
 
                 if (cell->is_start()) {
                     cv::rectangle(maze_img,
-                                  cv::Point(cell_x, cell_y),
-                                  cv::Point(cell_x + cell_size + wall_size * 2, cell_y + cell_size + wall_size * 2),
-                                  cv::Scalar(0, 255, 0),
+                                  cv::Point(cell_x + wall_size, cell_y + wall_size),
+                                  cv::Point(cell_x + cell_size + wall_size, cell_y + cell_size + wall_size),
+                                  _start_color,
                                   cv::FILLED);
 
                 }
                 if (cell->is_end()) {
                     cv::rectangle(maze_img,
-                                  cv::Point(cell_x, cell_y),
-                                  cv::Point(cell_x + cell_size + wall_size * 2, cell_y + cell_size + wall_size * 2),
-                                  cv::Scalar(0, 0, 255),
+                                  cv::Point(cell_x + wall_size, cell_y + wall_size),
+                                  cv::Point(cell_x + cell_size + wall_size, cell_y + cell_size + wall_size),
+                                  _end_color,
                                   cv::FILLED);
                 }
                 if (cell->has_wall(Direction::NORTH)) {
@@ -111,6 +133,15 @@ protected:
                 }
 
             }
+        }
+        if (current_coords != Coords{-1, -1}) {
+            int cell_x = current_coords.x * (cell_size + wall_size);
+            int cell_y = current_coords.y * (cell_size + wall_size);
+            cv::rectangle(maze_img,
+                          cv::Point(cell_x + wall_size, cell_y + wall_size),
+                          cv::Point(cell_x + cell_size + wall_size, cell_y + cell_size + wall_size),
+                          current_color,
+                          cv::FILLED);
         }
         return maze_img;
     }

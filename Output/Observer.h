@@ -4,5 +4,5 @@
 
 class Observer {
 public:
-    virtual void update(const MazeGrid& grid, Coords ) = 0;
+    virtual void update(const MazeGrid& grid, Coords current) = 0;
 };

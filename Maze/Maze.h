@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../types.h"
-#include "Cell.h"
+#include "../Structures/Cell.h"
 
 #include <random>
 #include <cstdint>
@@ -26,7 +26,7 @@ public:
     Size get_size() const;
     std::string get_algorithm() const;
     int get_seed() const;
-    const std::chrono::duration<double, std::milli> get_gen_time() const;
+    std::chrono::duration<double, std::milli> get_gen_time() const;
     void print() const;
 protected:
     std::chrono::duration<double> _gen_time;
@@ -46,6 +46,7 @@ public:
 
     MazeGridBuilder& create_empty_grid();
     std::shared_ptr<Cell> get_cell(const Coords& coords);
+    Coords get_cell_coords(const std::shared_ptr<Cell>& cell);
     std::shared_ptr<Cell> get_neighbor_cell(const Coords& coords, Direction direction);
     std::vector<std::shared_ptr<Cell>> get_neighbors(const Coords& coords);
     std::vector<std::shared_ptr<Cell>> get_unvisited_neighbors(const Coords& coords);

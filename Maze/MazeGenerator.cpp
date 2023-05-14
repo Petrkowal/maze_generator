@@ -2,6 +2,8 @@
 #include <algorithm>
 #include "MazeGenerator.h"
 
+const std::vector<std::string> MazeGenerator::algorithms = {"dfs", "kruskal"};
+
 MazeGenerator::MazeGenerator(Size &size) : _size(size) {
     validate_settings();
     _maze_builder = std::make_unique<MazeGridBuilder>(_size);
@@ -98,7 +100,11 @@ bool MazeGenerator::validate_settings() const {
     }
     if (std::find(algorithms.begin(), algorithms.end(), _algorithm) == algorithms.end()) {
         throw MazeGeneratorException(
-                "Algorithm must be one of: " + std::accumulate(algorithms.begin(), algorithms.end(), std::string("")));
+                "Algorithm must be one of: " + std::accumulate(std::next(algorithms.begin()), algorithms.end(),
+                                                               algorithms[0],
+                                                               [](const std::string& a, const std::string& b) {
+                                                                   return a + ", " + b;
+                                                               }));
     }
 
     return true;
@@ -130,16 +136,35 @@ std::unique_ptr<Maze> MazeGenerator::generate() {
 
     auto start = std::chrono::high_resolution_clock::now();
     if (_algorithm == "dfs") {
-        generateDFS();
+        generateDFS(false);
     }
+    if (_algorithm == "kruskal") {
+        generateKruskal(false);
+    }
+//    if (_algorithm == "wilson") {
+//        generateWilson(false);
+//    }
     auto end = std::chrono::high_resolution_clock::now();
-    auto gen_time = std::chrono::duration<double> (end - start);
+    auto gen_time = std::chrono::duration<double>(end - start);
+    auto maze = std::make_unique<Maze>(_size, _start, _end, _seed, _algorithm, gen_time, _maze_builder->get_grid());
 
-    return std::make_unique<Maze>(_size, _start, _end, _seed, _algorithm, gen_time, _maze_builder->get_grid());
+    _maze_builder->create_empty_grid();
+    _maze_builder->get_cell(_start)->set_start().set_visited();
+    _maze_builder->get_cell(_end)->set_end();
 
+    if (!_observers.empty()) { // generate again for the video
+        if (_algorithm == "dfs")
+            generateDFS(true);
+        if (_algorithm == "kruskal")
+            generateKruskal(true);
+//        if (_algorithm == "wilson")
+//            generateWilson(true);
+    }
+
+    return maze;
 }
 
-bool MazeGenerator::generateDFS() {
+bool MazeGenerator::generateDFS(bool notify) {
     std::default_random_engine rd(_seed);
     std::uniform_int_distribution<int> distribution(0, 3);
     Coords current_point = _start;
@@ -151,9 +176,6 @@ bool MazeGenerator::generateDFS() {
         unvisited_neighbors.clear();
         current_point = gen_path.top();
         gen_path.pop();
-//        std::this_thread::sleep_for(std::chrono::milliseconds(200));
-//        this->print(current_point);
-        notify_observers(current_point);
 
         unvisited_neighbors = _maze_builder->get_unvisited_directions(current_point);
         if (unvisited_neighbors.empty())
@@ -164,74 +186,84 @@ bool MazeGenerator::generateDFS() {
         _maze_builder->remove_wall(current_point, unvisited_neighbors[0]);
         _maze_builder->get_neighbor_cell(current_point, unvisited_neighbors[0])->set_visited();
         current_point = get_neigh_coords(current_point, unvisited_neighbors[0]);
+        if (notify)
+            notify_observers(current_point);
         gen_path.push(current_point);
     }
     return true;
+}
+
+
+bool MazeGenerator::generateKruskal(bool notify) {
+    int cells = _size.width * _size.height;
+    std::vector<std::pair<std::shared_ptr<Cell>, Direction>> walls;
+
+    for (int row = 0; row < _size.height; row++) {
+        for (int col = 0; col < _size.width; col++) {
+            auto cell = _maze_builder->get_cell({col, row});
+            if (row > 0) {
+                walls.emplace_back(cell, Direction::NORTH);
+            }
+            if (col > 0) {
+                walls.emplace_back(cell, Direction::WEST);
+            }
+        }
+    }
+    std::shuffle(walls.begin(), walls.end(), std::default_random_engine(_seed));
+
+    DisjointSet ds(cells);
+    int connected_cells = 1;
+    for (const auto &wall: walls) {
+        auto cell = wall.first;
+        auto direction = wall.second;
+        auto cell_coords = _maze_builder->get_cell_coords(cell);
+        if (cell_coords == Coords{-1, -1}) {
+            throw MazeGeneratorException("Cell not found");
+        }
+        auto neighbor = _maze_builder->get_neighbor_cell(cell_coords, direction);
+        if (!neighbor) {
+            continue;
+        }
+        auto neighbor_coords = _maze_builder->get_cell_coords(neighbor);
+        if (neighbor_coords == Coords{-1, -1}) {
+            throw MazeGeneratorException("Neighbor not found");
+        }
+
+        if (!ds.is_connected(
+                cell_coords.y * _size.width + cell_coords.x,
+                neighbor_coords.y * _size.width + neighbor_coords.x)) {
+            _maze_builder->remove_wall(cell_coords, direction);
+            ds.union_sets(cell_coords.y * _size.width + cell_coords.x,
+                          neighbor_coords.y * _size.width + neighbor_coords.x);
+            connected_cells++;
+            if (notify)
+                notify_observers(neighbor_coords);
+        }
+
+        if (connected_cells == cells) {
+            break;
+        }
+
+    }
+    return true;
+
 }
 
 bool MazeGenerator::valid_coords_settings(Coords c) const {
     return c.x >= 0 && c.x < _size.width && c.y >= 0 && c.y < _size.height;
 }
 
-void MazeGenerator::print(const Coords &current_coords) const {
-    MazeGrid maze = _maze_builder->get_grid();
-    int cols = maze.size();
-    int rows = maze[0].size();
-
-    for (int i = 0; i < 30; i++) {
-        std::cout << std::endl;
-    }
-
-    std::cout << "+";
-    for (int col = 0; col < cols; col++) {
-        std::cout << "---+";
-    }
-    std::cout << std::endl;
-
-    for (int row = 0; row < rows; row++) {
-        std::cout << "|";
-        for (int col = 0; col < cols; col++) {
-            if (maze[col][row]->has_wall(Direction::E)) {
-                if (maze[col][row]->is_start()) {
-                    std::cout << " S |";
-                } else if (maze[col][row]->is_end()) {
-                    std::cout << " E |";
-                } else if (current_coords == Coords{col, row}) {
-                    std::cout << " * |";
-                } else {
-                    std::cout << "   |";
-                }
-            } else {
-                if (maze[col][row]->is_start()) {
-                    std::cout << " S  ";
-                } else if (current_coords == Coords{col, row}) {
-                    std::cout << " *  ";
-                } else {
-                    std::cout << "    ";
-                }
-            }
-        }
-        std::cout << std::endl;
-
-        std::cout << "+";
-        for (int col = 0; col < cols; col++) {
-            if (maze[col][row]->has_wall(Direction::S)) {
-                std::cout << "---+";
-            } else {
-                std::cout << "   +";
-            }
-        }
-        std::cout << std::endl;
-    }
-}
-
-MazeGenerator &MazeGenerator::addObserver(const std::shared_ptr<Observer>& observer) {
+MazeGenerator &MazeGenerator::addObserver(const std::shared_ptr<Observer> &observer) {
     _observers.push_back(observer);
     return *this;
 }
 
 void MazeGenerator::notify_observers(Coords coords) const {
-    for (auto &observer : _observers) {
+    for (auto &observer: _observers) {
         observer->update(_maze_builder->get_grid(), coords);
     }
+}
+
+std::vector<std::string> MazeGenerator::get_algorithms() {
+    return algorithms;
 }

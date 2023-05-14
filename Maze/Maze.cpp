@@ -37,27 +37,27 @@ int Maze::get_seed() const {
     return _seed;
 }
 
-const std::chrono::duration<double, std::milli> Maze::get_gen_time() const {
+std::chrono::duration<double, std::milli> Maze::get_gen_time() const {
     return std::chrono::duration<double, std::milli>(_gen_time);
 }
 
 void Maze::print() const {
-    int cols = _maze.size();
-    int rows = _maze[0].size();
+    size_t cols = _maze.size();
+    size_t rows = _maze[0].size();
 
     for (int i = 0; i < 30; i++) {
         std::cout << std::endl;
     }
 
     std::cout << "+";
-    for (int col = 0; col < cols; col++) {
+    for (size_t col = 0; col < cols; col++) {
         std::cout << "---+";
     }
     std::cout << std::endl;
 
-    for (int row = 0; row < rows; row++) {
+    for (size_t row = 0; row < rows; row++) {
         std::cout << "|";
-        for (int col = 0; col < cols; col++) {
+        for (size_t col = 0; col < cols; col++) {
             if (_maze[col][row]->has_wall(Direction::E)) {
                 if (_maze[col][row]->is_start()) {
                     std::cout << " S |";
@@ -77,7 +77,7 @@ void Maze::print() const {
         std::cout << std::endl;
 
         std::cout << "+";
-        for (int col = 0; col < cols; col++) {
+        for (size_t col = 0; col < cols; col++) {
             if (_maze[col][row]->has_wall(Direction::S)) {
                 std::cout << "---+";
             } else {
@@ -96,9 +96,7 @@ MazeGridBuilder::MazeGridBuilder(const Size &size) : _size(size) {
 
 }
 
-MazeGridBuilder::~MazeGridBuilder() {
-
-}
+MazeGridBuilder::~MazeGridBuilder() = default;
 
 MazeGridBuilder &MazeGridBuilder::create_empty_grid() {
     _maze = MazeGrid(_size.width, std::vector<std::shared_ptr<Cell>>(_size.height));
@@ -111,11 +109,11 @@ MazeGridBuilder &MazeGridBuilder::create_empty_grid() {
 }
 
 bool MazeGridBuilder::validate_coords(const Coords &c) const {
-    int cols = _maze.size();
+    size_t cols = _maze.size();
     if (cols == 0) {
         return false;
     }
-    int rows = _maze[0].size();
+    size_t rows = _maze[0].size();
     if (rows == 0) {
         return false;
     }
@@ -314,4 +312,15 @@ bool MazeGridBuilder::remove_wall(const Coords &coords, const Coords &neighbor) 
 
 MazeGrid MazeGridBuilder::get_grid() const {
     return {_maze};
+}
+
+Coords MazeGridBuilder::get_cell_coords(const std::shared_ptr<Cell> &cell) {
+    for (int i = 0; i < _maze.size(); ++i) {
+        for (int j = 0; j < _maze[i].size(); ++j) {
+            if (_maze[i][j] == cell) {
+                return {i, j};
+            }
+        }
+    }
+    return {-1, -1};
 }

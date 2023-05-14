@@ -6,7 +6,7 @@
 #include "../types.h"
 #include "Maze.h"
 #include "../Output/Observer.h"
-//#include "../Output/MazeVideo.h"
+#include "../Structures/DisjointSet.h"
 
 class MazeGeneratorException : public std::exception {
 public:
@@ -22,7 +22,7 @@ private:
 
 class MazeGenerator {
 public:
-    MazeGenerator(Size& size);
+    explicit MazeGenerator(Size& size);
     MazeGenerator(int width, int height);
     MazeGenerator(MazeGenerator& other);
 
@@ -38,18 +38,24 @@ public:
     MazeGenerator& set_end(int x, int y);
 
     MazeGenerator& set_algorithm(const std::string& algorithm);
+
     MazeGenerator& set_seed(int seed);
     MazeGenerator& reset_seed();
 
     MazeGenerator& addObserver(const std::shared_ptr<Observer>& observer);
     std::unique_ptr<Maze> generate();
+
+    static std::vector<std::string> get_algorithms();
 private:
     std::unique_ptr<MazeGridBuilder> _maze_builder;
 
-    bool generateDFS();
+    bool generateDFS(bool notify_observers);
+    bool generateKruskal(bool notify_observers);
+//    bool generateWilson(bool notify_observers);
+
+
     bool valid_coords_settings(Coords c) const;
     bool validate_settings() const;
-    void print(const Coords& current) const;
     std::vector<std::shared_ptr<Observer>> _observers;
     void notify_observers(Coords coords) const;
 
@@ -61,5 +67,6 @@ private:
     std::string _algorithm = "dfs";
     int _seed = 0;
 
-    std::vector<std::string> algorithms = {"dfs"};
+    static const std::vector<std::string> algorithms;
+
 };
