@@ -1,4 +1,5 @@
 #include <chrono>
+#include <algorithm>
 #include "MazeGenerator.h"
 
 MazeGenerator::MazeGenerator(Size &size) : _size(size) {

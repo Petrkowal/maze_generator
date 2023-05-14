@@ -9,7 +9,6 @@
 #include <stack>
 #include <cstdlib>
 #include <random>
-#include <windows.h>
 #include <memory>
 #include <vector>
 #include <chrono>

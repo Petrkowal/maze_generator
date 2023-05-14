@@ -3,7 +3,11 @@ project(maze_generator)
 
 set(CMAKE_CXX_STANDARD 20)
 
+find_package(OpenCV REQUIRED COMPONENTS core imgproc highgui)
+include_directories(${OpenCV_INCLUDE_DIRS})
+
 file(GLOB SOURCES "*.cpp" "*/*.cpp")
 
 add_executable(maze_generator ${SOURCES})
 
+target_link_libraries(maze_generator ${OpenCV_LIBS})
